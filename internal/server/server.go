@@ -34,7 +34,7 @@ func New(cfg *config.Config) *Server {
 		DisableStartupMessage: true,
 	})
 
-	ser := &Server{
+	s := &Server{
 		config: cfg,
 		server: server,
 		db:     db,
@@ -43,7 +43,7 @@ func New(cfg *config.Config) *Server {
 	routes := routes.New(server, db, cfg)
 	routes.Register()
 
-	return ser
+	return s
 }
 
 func (s *Server) Start() {

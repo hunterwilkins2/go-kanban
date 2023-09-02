@@ -2,6 +2,7 @@ package routes
 
 import (
 	"database/sql"
+	"time"
 
 	"github.com/gofiber/contrib/websocket"
 	"github.com/gofiber/fiber/v2"
@@ -41,13 +42,13 @@ func (app *Application) Register() {
 	app.server.Get("/", app.homepage)
 }
 
-func (app *Application) props(props map[string]interface{}) map[string]interface{} {
-	if props != nil {
-		props["HotReload"] = app.config.HotReload
-		return props
+func (app *Application) Render(c *fiber.Ctx, name string, bind map[string]interface{}, layouts ...string) error {
+	if bind == nil {
+		bind = map[string]interface{}{}
 	}
 
-	return map[string]interface{}{
-		"HotReload": app.config.HotReload,
-	}
+	bind["HotReload"] = app.config.HotReload
+	bind["CurrentYear"] = time.Now().Year()
+
+	return c.Render(name, bind, layouts...)
 }
