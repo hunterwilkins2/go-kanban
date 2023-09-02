@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- Disables favicon -->
+  <link rel="icon" href="data:;base64,=">
+  <title>{{template "title"}}</title>
+  <link href="../static/css/dist/output.css" rel="stylesheet">
+</head>
+<body>
+  <div class="w-screen h-screen flex flex-col">
+    <header class="flex justify-between items-center px-10 py-5 bg-slate-700 text-white">
+      <h1 class="font-bold text-2xl">Example</h1>
+    
+      <div>
+        <button>Sign In</button>
+        <button class="p-2 ml-4 bg-purple-500 rounded-md">Sign Up</button>
+      </div>
+    </header> 
+    
+    <main class="grow p-10">
+      {{template "main" .}}
+    </main>
+    
+    <footer class="text-center p-5 bg-slate-900 text-white">
+      Powered by <a href="https://golang.org" class="text-cyan-500">Go</a> in {{.CurrentYear}}
+    </footer>
+  </div>
+
+  {{if .HotReload}}
+    <script src="../static/js/hot-reload.js"></script>
+  {{end}}
+</body>
+</html>
+
+{{define "title"}}{{end}}
