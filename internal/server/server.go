@@ -2,6 +2,7 @@ package server
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 	"os"
 	"os/signal"
@@ -13,6 +14,7 @@ import (
 	"github.com/gofiber/template/html/v2"
 	"github.com/hunterwilkins2/go-kanban/internal/config"
 	"github.com/hunterwilkins2/go-kanban/internal/routes"
+	"github.com/hunterwilkins2/go-kanban/internal/templates"
 	_ "github.com/mattn/go-sqlite3"
 )
 
@@ -32,7 +34,29 @@ func New(cfg *config.Config) *Server {
 	server := fiber.New(fiber.Config{
 		Views:                 engine,
 		DisableStartupMessage: true,
+		ErrorHandler: func(c *fiber.Ctx, err error) error {
+			code := fiber.StatusInternalServerError
+			var e *fiber.Error
+			if errors.As(err, &e) {
+				code = e.Code
+			}
+
+			switch code {
+			case fiber.StatusNotFound:
+				err = templates.Render(cfg, c, "pages/not-found", map[string]interface{}{"Title": "404 - Not Found"}, "base")
+			default:
+				return templates.Render(cfg, c, "pages/server-error", nil, "base")
+			}
+
+			if err != nil {
+				return c.Status(fiber.StatusInternalServerError).SendString("Internal Server Error")
+			}
+
+			return nil
+		},
 	})
+	//fmt.Println(engine.Templates.Lookup("pages/server-error").Tree)
+	fmt.Println(engine.Templates.DefinedTemplates())
 
 	s := &Server{
 		config: cfg,

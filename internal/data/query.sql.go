@@ -9,6 +9,254 @@ import (
 	"context"
 )
 
+const countColumns = `-- name: CountColumns :one
+SELECT count(*)
+FROM column
+WHERE board_id = ?
+`
+
+func (q *Queries) CountColumns(ctx context.Context, boardID int64) (int64, error) {
+	row := q.db.QueryRowContext(ctx, countColumns, boardID)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
+const countItems = `-- name: CountItems :one
+SELECT count(*)
+FROM item
+WHERE column_id = ?
+`
+
+func (q *Queries) CountItems(ctx context.Context, columnID int64) (int64, error) {
+	row := q.db.QueryRowContext(ctx, countItems, columnID)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
+const createBoard = `-- name: CreateBoard :exec
+INSERT INTO board (name, slug)
+VALUES (?, ?)
+`
+
+type CreateBoardParams struct {
+	Name string
+	Slug string
+}
+
+func (q *Queries) CreateBoard(ctx context.Context, arg CreateBoardParams) error {
+	_, err := q.db.ExecContext(ctx, createBoard, arg.Name, arg.Slug)
+	return err
+}
+
+const createColumn = `-- name: CreateColumn :one
+INSERT INTO column (name, element_order, board_id)
+VALUES (?, ?, ?)
+RETURNING id
+`
+
+type CreateColumnParams struct {
+	Name         string
+	ElementOrder int64
+	BoardID      int64
+}
+
+func (q *Queries) CreateColumn(ctx context.Context, arg CreateColumnParams) (int64, error) {
+	row := q.db.QueryRowContext(ctx, createColumn, arg.Name, arg.ElementOrder, arg.BoardID)
+	var id int64
+	err := row.Scan(&id)
+	return id, err
+}
+
+const createItem = `-- name: CreateItem :one
+INSERT INTO item (name, element_order, column_id)
+VALUES (?, ?, ?)
+RETURNING id
+`
+
+type CreateItemParams struct {
+	Name         string
+	ElementOrder int64
+	ColumnID     int64
+}
+
+func (q *Queries) CreateItem(ctx context.Context, arg CreateItemParams) (int64, error) {
+	row := q.db.QueryRowContext(ctx, createItem, arg.Name, arg.ElementOrder, arg.ColumnID)
+	var id int64
+	err := row.Scan(&id)
+	return id, err
+}
+
+const deleteBoard = `-- name: DeleteBoard :exec
+DELETE FROM board
+WHERE slug = ?
+`
+
+func (q *Queries) DeleteBoard(ctx context.Context, slug string) error {
+	_, err := q.db.ExecContext(ctx, deleteBoard, slug)
+	return err
+}
+
+const deleteColumn = `-- name: DeleteColumn :exec
+DELETE FROM column
+WHERE id = ?
+`
+
+func (q *Queries) DeleteColumn(ctx context.Context, id int64) error {
+	_, err := q.db.ExecContext(ctx, deleteColumn, id)
+	return err
+}
+
+const deleteItem = `-- name: DeleteItem :exec
+DELETE FROM item
+WHERE id = ?
+`
+
+func (q *Queries) DeleteItem(ctx context.Context, id int64) error {
+	_, err := q.db.ExecContext(ctx, deleteItem, id)
+	return err
+}
+
+const getBoard = `-- name: GetBoard :one
+SELECT id, name, slug from board
+WHERE slug = ?
+LIMIT 1
+`
+
+func (q *Queries) GetBoard(ctx context.Context, slug string) (Board, error) {
+	row := q.db.QueryRowContext(ctx, getBoard, slug)
+	var i Board
+	err := row.Scan(&i.ID, &i.Name, &i.Slug)
+	return i, err
+}
+
+const getBoards = `-- name: GetBoards :many
+SELECT id, name, slug FROM board
+ORDER BY id
+`
+
+func (q *Queries) GetBoards(ctx context.Context) ([]Board, error) {
+	rows, err := q.db.QueryContext(ctx, getBoards)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Board
+	for rows.Next() {
+		var i Board
+		if err := rows.Scan(&i.ID, &i.Name, &i.Slug); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getColumn = `-- name: GetColumn :one
+SELECT id, name, board_id, element_order
+FROM column
+WHERE id = ?
+LIMIT 1
+`
+
+type GetColumnRow struct {
+	ID           int64
+	Name         string
+	BoardID      int64
+	ElementOrder int64
+}
+
+func (q *Queries) GetColumn(ctx context.Context, id int64) (GetColumnRow, error) {
+	row := q.db.QueryRowContext(ctx, getColumn, id)
+	var i GetColumnRow
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.BoardID,
+		&i.ElementOrder,
+	)
+	return i, err
+}
+
+const getColumns = `-- name: GetColumns :many
+SELECT id, name, board_id
+FROM column
+WHERE board_id = ?
+ORDER BY element_order
+`
+
+type GetColumnsRow struct {
+	ID      int64
+	Name    string
+	BoardID int64
+}
+
+func (q *Queries) GetColumns(ctx context.Context, boardID int64) ([]GetColumnsRow, error) {
+	rows, err := q.db.QueryContext(ctx, getColumns, boardID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetColumnsRow
+	for rows.Next() {
+		var i GetColumnsRow
+		if err := rows.Scan(&i.ID, &i.Name, &i.BoardID); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getItems = `-- name: GetItems :many
+SELECT id, name, column_id
+FROM item
+WHERE column_id = ?
+ORDER BY element_order
+`
+
+type GetItemsRow struct {
+	ID       int64
+	Name     string
+	ColumnID int64
+}
+
+func (q *Queries) GetItems(ctx context.Context, columnID int64) ([]GetItemsRow, error) {
+	rows, err := q.db.QueryContext(ctx, getItems, columnID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetItemsRow
+	for rows.Next() {
+		var i GetItemsRow
+		if err := rows.Scan(&i.ID, &i.Name, &i.ColumnID); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getUser = `-- name: GetUser :one
 SELECT id, fullname, email, password_hash FROM user
 WHERE id = ?
@@ -25,4 +273,87 @@ func (q *Queries) GetUser(ctx context.Context, id int64) (User, error) {
 		&i.PasswordHash,
 	)
 	return i, err
+}
+
+const setColumnOrder = `-- name: SetColumnOrder :exec
+UPDATE column
+SET element_order = ?
+WHERE id = ?
+`
+
+type SetColumnOrderParams struct {
+	ElementOrder int64
+	ID           int64
+}
+
+func (q *Queries) SetColumnOrder(ctx context.Context, arg SetColumnOrderParams) error {
+	_, err := q.db.ExecContext(ctx, setColumnOrder, arg.ElementOrder, arg.ID)
+	return err
+}
+
+const setItemOrder = `-- name: SetItemOrder :exec
+UPDATE item
+SET element_order = ?, column_id = ?
+WHERE id = ?
+`
+
+type SetItemOrderParams struct {
+	ElementOrder int64
+	ColumnID     int64
+	ID           int64
+}
+
+func (q *Queries) SetItemOrder(ctx context.Context, arg SetItemOrderParams) error {
+	_, err := q.db.ExecContext(ctx, setItemOrder, arg.ElementOrder, arg.ColumnID, arg.ID)
+	return err
+}
+
+const updateBoard = `-- name: UpdateBoard :exec
+UPDATE board
+SET name = ?, slug = ?
+WHERE slug = ?
+`
+
+type UpdateBoardParams struct {
+	Name   string
+	Slug   string
+	Slug_2 string
+}
+
+func (q *Queries) UpdateBoard(ctx context.Context, arg UpdateBoardParams) error {
+	_, err := q.db.ExecContext(ctx, updateBoard, arg.Name, arg.Slug, arg.Slug_2)
+	return err
+}
+
+const updateColumn = `-- name: UpdateColumn :exec
+UPDATE column
+SET name = ?, element_order = ?
+WHERE id = ?
+`
+
+type UpdateColumnParams struct {
+	Name         string
+	ElementOrder int64
+	ID           int64
+}
+
+func (q *Queries) UpdateColumn(ctx context.Context, arg UpdateColumnParams) error {
+	_, err := q.db.ExecContext(ctx, updateColumn, arg.Name, arg.ElementOrder, arg.ID)
+	return err
+}
+
+const updateItem = `-- name: UpdateItem :exec
+UPDATE item
+SET name = ? 
+WHERE id = ?
+`
+
+type UpdateItemParams struct {
+	Name string
+	ID   int64
+}
+
+func (q *Queries) UpdateItem(ctx context.Context, arg UpdateItemParams) error {
+	_, err := q.db.ExecContext(ctx, updateItem, arg.Name, arg.ID)
+	return err
 }

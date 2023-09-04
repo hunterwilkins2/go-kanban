@@ -1,0 +1,13 @@
+<input
+  id="edit-column-name"
+  type="text"
+  name="name"
+  value="{{.Name}}"
+  hx-patch="/board/{{.Slug}}/column/{{.ID}}"
+  hx-swap="outerHTML"
+  hx-target="#edit-column-name"
+  autofocus
+  onfocus="var temp_value=this.value; this.value=''; this.value=temp_value"
+  onblur="htmx.ajax('PATCH', '/board/{{.Slug}}/column/{{.ID}}', {target: '#edit-column-name', values: { 'name': this.value} })"
+  class="w-full text-xl text-slate-800 font-bold mb-2 bg-gray-300 focus:outline-none"
+>

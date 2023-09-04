@@ -1,0 +1,22 @@
+<div class="flex justify-between items-center bg-white rounded-md p-2 mb-2 group item">
+  <input type="text" class="hidden" disabled readonly value="{{.ID}}">
+  {{block "item-name" .}}
+    <p class="">
+      {{.Name}}
+    </p>
+    <div>
+      <i 
+        hx-get="/items/{{.ID}}/edit?name={{.Name}}"
+        hx-swap="innerHTML"
+        hx-target="closest .item"
+        class="fa-solid fa-pen-to-square mr-2 text-white cursor-pointer group-hover:text-gray-400"
+      ></i>
+      <i 
+        hx-delete="/items/{{.ID}}"
+        hx-swap="delete"
+        hx-target="closest .item"
+        class="fa-regular fa-circle-xmark cursor-pointer text-white group-hover:text-red-300"
+      ></i>
+    </div>
+  {{end}}
+</div>

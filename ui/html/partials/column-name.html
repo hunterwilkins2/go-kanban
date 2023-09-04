@@ -1,0 +1,15 @@
+<h1 class="text-slate-800 font-bold text-xl mb-2 group">
+  {{.Name}}
+  <i 
+    hx-get="/board/{{.Slug}}/column/{{.ID}}"
+    hx-swap="innerHTML"
+    hx-target="closest div"
+    class="fa-solid fa-pen-to-square cursor-pointer text-sm ml-2 text-gray-300 group-hover:text-gray-500"
+  ></i>
+</h1>
+<i 
+  hx-delete="/board/{{.Slug}}/column/{{.ID}}"
+  hx-swap="delete"
+  hx-target="closest .column"
+  class="fa-solid fa-trash cursor-pointer text-gray-500 opacity-25"
+></i>

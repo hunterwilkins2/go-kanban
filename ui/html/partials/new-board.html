@@ -1,0 +1,11 @@
+<input 
+  type="text" 
+  id="new-element"
+  name="name"
+  placeholder="Board name" 
+  hx-post="/board"
+  hx-swap="outerHTML"
+  autofocus
+  class="bg-gray-100 text-slate-600 px-10 py-5 focus:outline-none"
+  onblur="removeElement()"
+>

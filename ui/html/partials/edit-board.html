@@ -1,0 +1,13 @@
+<input
+  id="edit-name"
+  type="text"
+  name="name"
+  value="{{.Name}}"
+  hx-patch="/board/{{.Slug}}"
+  hx-swap="innerHTML"
+  hx-target="#edit-name"
+  autofocus
+  onfocus="var temp_value=this.value; this.value=''; this.value=temp_value"
+  onblur="htmx.ajax('PATCH', '/board/{{.Slug}}', {target: '#edit-name', values: { 'name': this.value} })"
+  class="w-fit text-3xl text-white font-bold mb-5 bg-zinc-900 focus:outline-none"
+>

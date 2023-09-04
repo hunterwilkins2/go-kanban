@@ -6,6 +6,26 @@ package data
 
 import ()
 
+type Board struct {
+	ID   int64
+	Name string
+	Slug string
+}
+
+type Column struct {
+	ID           int64
+	Name         string
+	ElementOrder int64
+	BoardID      int64
+}
+
+type Item struct {
+	ID           int64
+	Name         string
+	ElementOrder int64
+	ColumnID     int64
+}
+
 type User struct {
 	ID           int64
 	Fullname     string

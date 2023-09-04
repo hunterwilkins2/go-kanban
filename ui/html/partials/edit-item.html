@@ -1,0 +1,13 @@
+<input
+  id="edit-item-name"
+  type="text"
+  name="name"
+  value="{{.Name}}"
+  hx-patch="/items/{{.ID}}"
+  hx-swap="innerHTML"
+  hx-target="#edit-item-name"
+  autofocus
+  onfocus="var temp_value=this.value; this.value=''; this.value=temp_value"
+  onblur="htmx.ajax('PATCH', '/items/{{.ID}}', {target: '#edit-item-name', values: { 'name': this.value} })"
+  class="w-fit bg-white rounded-md group item outline-none"
+>
