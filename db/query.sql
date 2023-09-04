@@ -1,10 +1,17 @@
 -- name: GetUser :one
 SELECT * FROM user
-WHERE id = ?
+WHERE email = ?
 LIMIT 1;
 
+-- name: CreateUser :one
+INSERT INTO user (fullname, email, password_hash)
+VALUES (?, ?, ?)
+RETURNING id;
+
 -- name: GetBoards :many
-SELECT id, name, slug FROM board
+SELECT id, name, slug 
+FROM board
+WHERE user_id = ?
 ORDER BY id;
 
 -- name: GetBoard :one
@@ -13,17 +20,17 @@ WHERE slug = ?
 LIMIT 1;
 
 -- name: CreateBoard :exec
-INSERT INTO board (name, slug)
-VALUES (?, ?);
+INSERT INTO board (name, slug, user_id)
+VALUES (?, ?, ?);
 
 -- name: UpdateBoard :exec
 UPDATE board
 SET name = ?, slug = ?
-WHERE slug = ?;
+WHERE slug = ? AND user_id = ?;
 
 -- name: DeleteBoard :exec
 DELETE FROM board
-WHERE slug = ?;
+WHERE slug = ? AND user_id = ?;
 
 -- name: CountColumns :one
 SELECT count(*)

@@ -7,9 +7,10 @@ package data
 import ()
 
 type Board struct {
-	ID   int64
-	Name string
-	Slug string
+	ID     int64
+	Name   string
+	Slug   string
+	UserID int64
 }
 
 type Column struct {

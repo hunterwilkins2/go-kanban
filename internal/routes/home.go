@@ -11,9 +11,14 @@ import (
 )
 
 func (app *Application) homepage(c *fiber.Ctx) error {
+	sess, err := app.store.Get(c)
+	if err != nil {
+		return fiber.ErrInternalServerError
+	}
+
 	timeout, cancel := context.WithTimeout(c.UserContext(), 5*time.Second)
 	defer cancel()
-	boards, err := app.queries.GetBoards(timeout)
+	boards, err := app.queries.GetBoards(timeout, sess.Get("id").(int64))
 	if err != nil {
 		return fiber.ErrInternalServerError
 	}
@@ -51,11 +56,19 @@ func (app *Application) createBoard(c *fiber.Ctx) error {
 }
 
 func (app *Application) deleteBoard(c *fiber.Ctx) error {
+	sess, err := app.store.Get(c)
+	if err != nil {
+		return fiber.ErrInternalServerError
+	}
+
 	slug := c.Params("slug")
 
 	timeout, cancel := context.WithTimeout(c.UserContext(), 5*time.Second)
 	defer cancel()
-	err := app.queries.DeleteBoard(timeout, slug)
+	err = app.queries.DeleteBoard(timeout, data.DeleteBoardParams{
+		Slug:   slug,
+		UserID: sess.Get("id").(int64),
+	})
 	if err != nil {
 		return fiber.ErrInternalServerError
 	}
@@ -80,16 +93,22 @@ func (app *Application) editBoard(c *fiber.Ctx) error {
 }
 
 func (app *Application) updateBoard(c *fiber.Ctx) error {
+	sess, err := app.store.Get(c)
+	if err != nil {
+		return fiber.ErrInternalServerError
+	}
+
 	name := c.FormValue("name")
 	oldSlug := c.Params("slug")
 	slug := generateSlug(name)
 
 	timeout, cancel := context.WithTimeout(c.UserContext(), 5*time.Second)
 	defer cancel()
-	err := app.queries.UpdateBoard(timeout, data.UpdateBoardParams{
+	err = app.queries.UpdateBoard(timeout, data.UpdateBoardParams{
 		Name:   name,
 		Slug:   slug,
 		Slug_2: oldSlug,
+		UserID: sess.Get("id").(int64),
 	})
 	fmt.Println(err)
 	if err != nil {

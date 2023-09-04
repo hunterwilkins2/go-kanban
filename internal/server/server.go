@@ -44,6 +44,8 @@ func New(cfg *config.Config) *Server {
 			switch code {
 			case fiber.StatusNotFound:
 				err = templates.Render(cfg, c, "pages/not-found", map[string]interface{}{"Title": "404 - Not Found"}, "base")
+			case fiber.StatusForbidden:
+				err = templates.Render(cfg, c, "pages/login", map[string]interface{}{"Title": "Login"}, "base")
 			default:
 				return templates.Render(cfg, c, "pages/server-error", nil, "base")
 			}
@@ -55,8 +57,6 @@ func New(cfg *config.Config) *Server {
 			return nil
 		},
 	})
-	//fmt.Println(engine.Templates.Lookup("pages/server-error").Tree)
-	fmt.Println(engine.Templates.DefinedTemplates())
 
 	s := &Server{
 		config: cfg,

@@ -36,17 +36,18 @@ func (q *Queries) CountItems(ctx context.Context, columnID int64) (int64, error)
 }
 
 const createBoard = `-- name: CreateBoard :exec
-INSERT INTO board (name, slug)
-VALUES (?, ?)
+INSERT INTO board (name, slug, user_id)
+VALUES (?, ?, ?)
 `
 
 type CreateBoardParams struct {
-	Name string
-	Slug string
+	Name   string
+	Slug   string
+	UserID int64
 }
 
 func (q *Queries) CreateBoard(ctx context.Context, arg CreateBoardParams) error {
-	_, err := q.db.ExecContext(ctx, createBoard, arg.Name, arg.Slug)
+	_, err := q.db.ExecContext(ctx, createBoard, arg.Name, arg.Slug, arg.UserID)
 	return err
 }
 
@@ -88,13 +89,37 @@ func (q *Queries) CreateItem(ctx context.Context, arg CreateItemParams) (int64, 
 	return id, err
 }
 
-const deleteBoard = `-- name: DeleteBoard :exec
-DELETE FROM board
-WHERE slug = ?
+const createUser = `-- name: CreateUser :one
+INSERT INTO user (fullname, email, password_hash)
+VALUES (?, ?, ?)
+RETURNING id
 `
 
-func (q *Queries) DeleteBoard(ctx context.Context, slug string) error {
-	_, err := q.db.ExecContext(ctx, deleteBoard, slug)
+type CreateUserParams struct {
+	Fullname     string
+	Email        string
+	PasswordHash string
+}
+
+func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (int64, error) {
+	row := q.db.QueryRowContext(ctx, createUser, arg.Fullname, arg.Email, arg.PasswordHash)
+	var id int64
+	err := row.Scan(&id)
+	return id, err
+}
+
+const deleteBoard = `-- name: DeleteBoard :exec
+DELETE FROM board
+WHERE slug = ? AND user_id = ?
+`
+
+type DeleteBoardParams struct {
+	Slug   string
+	UserID int64
+}
+
+func (q *Queries) DeleteBoard(ctx context.Context, arg DeleteBoardParams) error {
+	_, err := q.db.ExecContext(ctx, deleteBoard, arg.Slug, arg.UserID)
 	return err
 }
 
@@ -119,7 +144,7 @@ func (q *Queries) DeleteItem(ctx context.Context, id int64) error {
 }
 
 const getBoard = `-- name: GetBoard :one
-SELECT id, name, slug from board
+SELECT id, name, slug, user_id from board
 WHERE slug = ?
 LIMIT 1
 `
@@ -127,24 +152,37 @@ LIMIT 1
 func (q *Queries) GetBoard(ctx context.Context, slug string) (Board, error) {
 	row := q.db.QueryRowContext(ctx, getBoard, slug)
 	var i Board
-	err := row.Scan(&i.ID, &i.Name, &i.Slug)
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Slug,
+		&i.UserID,
+	)
 	return i, err
 }
 
 const getBoards = `-- name: GetBoards :many
-SELECT id, name, slug FROM board
+SELECT id, name, slug 
+FROM board
+WHERE user_id = ?
 ORDER BY id
 `
 
-func (q *Queries) GetBoards(ctx context.Context) ([]Board, error) {
-	rows, err := q.db.QueryContext(ctx, getBoards)
+type GetBoardsRow struct {
+	ID   int64
+	Name string
+	Slug string
+}
+
+func (q *Queries) GetBoards(ctx context.Context, userID int64) ([]GetBoardsRow, error) {
+	rows, err := q.db.QueryContext(ctx, getBoards, userID)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []Board
+	var items []GetBoardsRow
 	for rows.Next() {
-		var i Board
+		var i GetBoardsRow
 		if err := rows.Scan(&i.ID, &i.Name, &i.Slug); err != nil {
 			return nil, err
 		}
@@ -259,12 +297,12 @@ func (q *Queries) GetItems(ctx context.Context, columnID int64) ([]GetItemsRow, 
 
 const getUser = `-- name: GetUser :one
 SELECT id, fullname, email, password_hash FROM user
-WHERE id = ?
+WHERE email = ?
 LIMIT 1
 `
 
-func (q *Queries) GetUser(ctx context.Context, id int64) (User, error) {
-	row := q.db.QueryRowContext(ctx, getUser, id)
+func (q *Queries) GetUser(ctx context.Context, email string) (User, error) {
+	row := q.db.QueryRowContext(ctx, getUser, email)
 	var i User
 	err := row.Scan(
 		&i.ID,
@@ -311,17 +349,23 @@ func (q *Queries) SetItemOrder(ctx context.Context, arg SetItemOrderParams) erro
 const updateBoard = `-- name: UpdateBoard :exec
 UPDATE board
 SET name = ?, slug = ?
-WHERE slug = ?
+WHERE slug = ? AND user_id = ?
 `
 
 type UpdateBoardParams struct {
 	Name   string
 	Slug   string
 	Slug_2 string
+	UserID int64
 }
 
 func (q *Queries) UpdateBoard(ctx context.Context, arg UpdateBoardParams) error {
-	_, err := q.db.ExecContext(ctx, updateBoard, arg.Name, arg.Slug, arg.Slug_2)
+	_, err := q.db.ExecContext(ctx, updateBoard,
+		arg.Name,
+		arg.Slug,
+		arg.Slug_2,
+		arg.UserID,
+	)
 	return err
 }
 

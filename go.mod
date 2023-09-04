@@ -11,6 +11,7 @@ require (
 require (
 	github.com/fasthttp/websocket v1.5.4 // indirect
 	github.com/savsgio/gotils v0.0.0-20230208104028-c358bd845dee // indirect
+	golang.org/x/crypto v0.12.0 // indirect
 )
 
 require (

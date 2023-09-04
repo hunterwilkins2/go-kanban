@@ -25,10 +25,15 @@
       <h1 class="font-bold font-pacifico text-2xl">Go Kanban</h1>
     
       <div class="flex items-center">
-        <p class="bg-zinc-700 rounded-md mr-3 px-2 py-1">Hunter Wilkins</p>
-        <a href="/signout" class="hover:text-purple-500">
-          <i class="fa-solid fa-right-from-bracket mr-1"></i> Sign out
-        </a>
+        {{if not .UserName}}
+          <a href="/login" class="hover:text-purple-500 cursor-pointer">Login</a>
+          <a href="/signup" class="px-2 py-1 rounded-md ml-3 bg-purple-500 text-white">Signup</a>
+        {{else}}
+          <p class="bg-zinc-700 rounded-md mr-3 px-2 py-1">{{.UserName}}</p>
+          <a hx-post="/logout" class="hover:text-purple-500 cursor-pointer">
+            <i class="fa-solid fa-right-from-bracket mr-1"></i> Sign out
+          </a>
+        {{end}}
       </div>
     </header> 
     

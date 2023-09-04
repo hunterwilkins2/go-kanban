@@ -8,7 +8,8 @@ CREATE TABLE IF NOT EXISTS user (
 CREATE TABLE IF NOT EXISTS board (
   id integer PRIMARY KEY,
   name text NOT NULL,
-  slug text NOT NULL
+  slug text NOT NULL,
+  user_id integer NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS column (

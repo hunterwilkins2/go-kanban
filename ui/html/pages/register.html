@@ -1,9 +1,10 @@
 <div class="h-full flex flex-col justify-center items-center">
   <form 
-    hx-post="/login"
+    action="/signup" 
+    method="post"
     class="bg-gray-50 rounded-lg p-10 shadow-lg"
   >
-    <h1 class="text-xl mb-3">Login</h1>
+    <h1 class="text-xl mb-3">Create an account</h1>
 
     <div class="flex flex-col mb-2">
       <label for="email" class="font-bold">Email</label>
@@ -11,11 +12,15 @@
     </div>
 
     <div class="flex flex-col mb-2">
+      <label for="name" class="font-bold">Full Name</label>
+      <input type="text" name="name" placeholder="John Doe" required class="block w-full rounded-md border-0 py-1.5 pl-7 pr-20 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400">
+    </div>
+
+    <div class="flex flex-col mb-2">
       <label for="password" class="font-bold">Password</label>
       <input type="password" name="password" required class="block w-full rounded-md border-0 py-1.5 pl-7 pr-20 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400">
     </div>
 
-    <button type="submit" class="p-2 bg-purple-500 text-white rounded-md mt-5">Login</button>
+    <button type="submit" class="p-2 bg-purple-500 text-white rounded-md mt-5">Register</button>
   </form>
 </div>
-
