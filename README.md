@@ -2,7 +2,7 @@
 
 Trello inspired Kanban board created with Go.
 
-![TodoMVC Screenshot](https://github.com/hunterwilkins2/go-kanban/blob/master/img/todomvc.png)
+![Go Kanban Screenshot](https://github.com/hunterwilkins2/go-kanban/blob/master/img/go-kanban.png)
 
 ## Getting Started
 
